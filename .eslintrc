@@ -1,0 +1,5 @@
+{
+    "rules": {
+        "security/detect-non-literal-require": 0
+    }
+}

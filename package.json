@@ -1,0 +1,50 @@
+{
+  "name": "check-kit",
+  "version": "1.0.0",
+  "description": "Checks if a newer version is available for command line interfaces",
+  "main": "./dist/index.js",
+  "author": "Axway, Inc. <npmjs@appcelerator.com>",
+  "maintainers": [
+    "Chris Barber <cbarber@axway.com>"
+  ],
+  "license": "Apache-2.0",
+  "keywords": [
+    "check",
+    "checker",
+    "update",
+    "updates",
+    "notify",
+    "notifier",
+    "notifications",
+    "cli",
+    "version",
+    "latest"
+  ],
+  "scripts": {
+    "build": "gulp build",
+    "coverage": "gulp coverage",
+    "docs": "gulp docs",
+    "lint": "gulp lint",
+    "prepare": "gulp build",
+    "test": "gulp test"
+  },
+  "dependencies": {
+    "@axway/amplify-request": "^2.0.1",
+    "registry-auth-token": "4.2.0",
+    "semver": "^7.3.2",
+    "snooplogg": "^3.0.0",
+    "source-map-support": "^0.5.19"
+  },
+  "devDependencies": {
+    "appcd-gulp": "^3.0.1"
+  },
+  "homepage": "https://github.com/appcelerator/check-kit",
+  "bugs": "https://github.com/appcelerator/check-kit/issues",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/appcelerator/check-kit.git"
+  },
+  "engines": {
+    "node": ">=10.13.0"
+  }
+}
