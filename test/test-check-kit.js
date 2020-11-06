@@ -1,12 +1,20 @@
-import check from '../dist/index';
+import check, { loadPackageJson } from '../dist/index';
+import fs from 'fs-extra';
 import http from 'http';
 import path from 'path';
 import snooplogg from 'snooplogg';
+import tmp from 'tmp';
 
 const { log } = snooplogg('test:check-kit');
 const { highlight } = snooplogg.styles;
 
+process.env.TEST_META_DIR = tmp.dirSync({ prefix: 'check-kit-test' }).name;
+
 describe('check-kit', function () {
+	after(async () => {
+		await fs.remove(process.env.TEST_META_DIR);
+	});
+
 	describe('Error handling', () => {
 		it('should error if options is not an object', async () => {
 			await expect(check('foo')).to.eventually.be.rejectedWith(TypeError, 'Expected options to be an object');
@@ -50,6 +58,32 @@ describe('check-kit', function () {
 				pkg: __dirname
 			})).to.eventually.be.rejectedWith(Error, `Failed to read file: ${__dirname}`);
 		});
+
+		it('should error if metaDir is not a string', async () => {
+			await expect(check({
+				metaDir: 123
+			})).to.eventually.be.rejectedWith(Error, 'Expected metaDir to be a string');
+		});
+	});
+
+	describe('Environment check skip', () => {
+		it('should skip check if NO_UPDATE_NOTIFIER is set', async () => {
+			try {
+				process.env.NO_UPDATE_NOTIFIER = 1;
+				expect(await check()).to.deep.equal({});
+			} finally {
+				delete process.env.NO_UPDATE_NOTIFIER;
+			}
+		});
+
+		it('should skip check if NODE_ENV is set to test', async () => {
+			try {
+				process.env.NODE_ENV = 'test';
+				expect(await check()).to.deep.equal({});
+			} finally {
+				delete process.env.NODE_ENV;
+			}
+		});
 	});
 
 	describe('package.json', () => {
@@ -89,7 +123,7 @@ describe('check-kit', function () {
 			expect(result.current).to.equal('1.2.3');
 			expect(result.distTag).to.equal('latest');
 			expect(result.latest).to.not.equal(null);
-			expect(result.update).to.equal(true);
+			expect(result.updateAvailable).to.equal(true);
 		});
 
 		it('should check a valid package.json with scoped name', async () => {
@@ -100,7 +134,7 @@ describe('check-kit', function () {
 			expect(result.current).to.equal('1.2.3');
 			expect(result.distTag).to.equal('latest');
 			expect(result.latest).to.not.equal(null);
-			expect(result.update).to.equal(true);
+			expect(result.updateAvailable).to.equal(true);
 		});
 
 		it('should scan and check a valid package.json', async () => {
@@ -111,7 +145,7 @@ describe('check-kit', function () {
 			expect(result.current).to.equal('99.9.9');
 			expect(result.distTag).to.equal('latest');
 			expect(result.latest).to.not.equal(null);
-			expect(result.update).to.equal(false);
+			expect(result.updateAvailable).to.equal(false);
 		});
 	});
 
@@ -139,7 +173,7 @@ describe('check-kit', function () {
 			expect(result.current).to.equal('0.0.1');
 			expect(result.distTag).to.equal('latest');
 			expect(result.latest).to.not.equal(null);
-			expect(result.update).to.equal(true);
+			expect(result.updateAvailable).to.equal(true);
 		});
 
 		it('should fail to find non-existent package', async () => {
@@ -153,7 +187,7 @@ describe('check-kit', function () {
 			expect(result.current).to.equal('1.2.3');
 			expect(result.distTag).to.equal('latest');
 			expect(result.latest).to.equal(null);
-			expect(result.update).to.equal(false);
+			expect(result.updateAvailable).to.equal(false);
 		});
 
 		it('should error if dist tag does not exist', async () => {
@@ -239,7 +273,7 @@ describe('check-kit', function () {
 			expect(result.current).to.equal('1.2.3');
 			expect(result.distTag).to.equal('latest');
 			expect(result.latest).to.equal(null);
-			expect(result.update).to.equal(false);
+			expect(result.updateAvailable).to.equal(false);
 		});
 
 		it('should error if no access to package', async () => {
@@ -254,7 +288,7 @@ describe('check-kit', function () {
 			expect(result.current).to.equal('1.2.3');
 			expect(result.distTag).to.equal('latest');
 			expect(result.latest).to.equal(null);
-			expect(result.update).to.equal(false);
+			expect(result.updateAvailable).to.equal(false);
 		});
 
 		it('should error if failed to connect to registry', async function () {
@@ -308,6 +342,12 @@ describe('check-kit', function () {
 				},
 				registryUrl: 'http://127.0.0.1:1337'
 			})).to.eventually.be.rejectedWith(Error, 'Distribution tag "latest" does not exist');
+		});
+	});
+
+	describe('loadPackageJson()', () => {
+		it('should error if options is not an object', async () => {
+			await expect(loadPackageJson(123)).to.eventually.be.rejectedWith(TypeError, 'Expected options to be an object');
 		});
 	});
 });

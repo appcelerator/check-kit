@@ -30,11 +30,13 @@
   },
   "dependencies": {
     "@axway/amplify-request": "^2.0.1",
+    "ci-info": "^2.0.0",
     "fs-extra": "^9.0.1",
     "registry-auth-token": "4.2.0",
     "semver": "^7.3.2",
     "snooplogg": "^3.0.0",
-    "source-map-support": "^0.5.19"
+    "source-map-support": "^0.5.19",
+    "tmp": "^0.2.1"
   },
   "devDependencies": {
     "appcd-gulp": "^3.0.1"

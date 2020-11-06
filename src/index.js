@@ -8,7 +8,8 @@ import path from 'path';
 import semver from 'semver';
 import snooplogg from 'snooplogg';
 import * as request from '@axway/amplify-request';
-import { tmpdir } from 'os';
+import { isCI } from 'ci-info';
+import { tmpdir } from 'tmp';
 
 const { error, log, warn } = snooplogg('check-kit');
 const { highlight } = snooplogg.styles;
@@ -39,22 +40,22 @@ const { highlight } = snooplogg.styles;
  * @returns {Promise} Resolves an object containing the update information.
  */
 export async function check(opts = {}) {
-	// bail immediately if update notifications have been explicitly disabled or we're running
-	// within a test
-	if (process.env.NO_UPDATE_NOTIFIER || process.env.NODE_ENV === 'test') {
-		return {};
-	}
-
 	if (!opts || typeof opts !== 'object') {
 		throw new TypeError('Expected options to be an object');
 	}
 
 	let {
-		checkInterval = 3600000,
+		checkInterval = 3600000, // 1 hour
 		distTag = 'latest',
 		force,
 		metaDir
 	} = opts;
+
+	// bail immediately if update notifications have been explicitly disabled or we're running
+	// within a test
+	if (!force && (process.env.NO_UPDATE_NOTIFIER || process.env.NODE_ENV === 'test' || isCI)) {
+		return {};
+	}
 
 	if (!distTag || typeof distTag !== 'string') {
 		throw new TypeError('Expected distTag to be a non-empty string');
@@ -62,7 +63,7 @@ export async function check(opts = {}) {
 
 	// determine the meta directory
 	if (!metaDir) {
-		metaDir = path.join(tmpdir(), 'check-kit');
+		metaDir = process.env.TEST_META_DIR || path.join(tmpdir, 'check-kit');
 	} else if (typeof metaDir !== 'string') {
 		throw new TypeError('Expected metaDir to be a string');
 	}
@@ -79,7 +80,7 @@ export async function check(opts = {}) {
 	const now = Date.now();
 	const metaFile = path.resolve(metaDir, `${name.replace(/[/\\]/g, '-')}-${distTag}.json`);
 	const meta = Object.assign({
-		latest: version,
+		latest: null,
 		lastCheck: null,
 		updateAvailable: false
 	}, await loadMetaFile(metaFile), {
@@ -94,11 +95,20 @@ export async function check(opts = {}) {
 	//  - or there's no last check timestamp
 	//  - or the last check is > check interval
 	if (force || !meta.lastCheck || (meta.lastCheck + checkInterval > now)) {
-		const latest = await getLatestVersion(name, distTag, opts);
-		meta.latest = latest || version;
-		meta.lastCheck = now;
-		meta.updateAvailable = latest ? semver.gt(latest, version) : false;
-		await fs.outputJson(metaFile, meta, { spaces: 2 });
+		try {
+			meta.latest = await getLatestVersion(name, distTag, opts);
+			meta.lastCheck = now;
+			meta.updateAvailable = meta.latest ? semver.gt(meta.latest, version) : false;
+			await fs.outputJson(metaFile, meta, { spaces: 2 });
+		} catch (err) {
+			// check if we're offline
+			/* istanbul ignore if */
+			if (err.code === 'ENOTFOUND') {
+				warn(err.message);
+			} else {
+				throw err;
+			}
+		}
 	}
 
 	if (meta.updateAvailable) {
@@ -238,8 +248,9 @@ async function getLatestVersion(name, distTag, opts) {
 		try {
 			info = (await got(reqOpts)).body;
 		} catch (err) {
-			if (err.code === 'ECONNREFUSED') {
-				err.message = 'Failed to connect to npm registry';
+			if (err.code === 'ENOTFOUND' || err.code === 'ECONNREFUSED') {
+				err.message = `Failed to connect to npm registry: ${err.message}`;
+				throw err;
 			}
 
 			if (!err.response || !String(err.response.statusCode).startsWith(4)) {

@@ -7,19 +7,19 @@
 
 Checks if a newer version is available for command line interfaces.
 
-It is designed for CLI's that want to be in control.
+It is designed to be extremely easy to use and for CLI's that want to be in control.
 
 **What `check-kit` does:**
 
  * Checks if there is a new version available
  * Checks version for a specific dist tag
- * Fetches latest version from npm every so often
+ * Fetches latest version from npm based on time interval
  * Persists the update metadata
  * Supports HTTP proxies
 
 **What `check-kit` does _not_ do:**
 
- * Display a message if a new version is available
+ * Display a message when a new version is available, that's up to you how you want it formatted
 
 ## Installation
 
@@ -106,6 +106,34 @@ You can override the directory where the metadata file is stored, but you cannot
 metadata filename. The filename is derived from the package name and the distribution tag. For
 example, the package `@foo/bar` would resolve the filename `@foo-bar-latest.json`.
 
+## Comparison
+
+|                                    | `check-kit`        | [`update-notifier`][2] | [`update-check`][3] |
+| ---------------------------------- | :----------------: | :--------------------: | :-----------------: |
+| Version                            | 1.x                | 5.0.1                  | 1.5.4               |
+| Default check interval             | 1 hour             | 24 hours               | 1 hour              |
+| Update check method                | Async/await        | Subprocess             | Async/await         |
+| Notify of updates immediately      | :white_check_mark: | :x:                    | :white_check_mark:  |
+| Persist update available           | :white_check_mark: | :white_check_mark:     | :white_check_mark:  |
+| User-defined persistance directory | :white_check_mark: | :x:                    | :x:                 |
+| Specify dist tag                   | :white_check_mark: | :white_check_mark:     | :white_check_mark:  |
+| Specify `package.json` as object   | :white_check_mark: | :white_check_mark:     | :white_check_mark:  |
+| Specify `package.json` as path     | :white_check_mark: | :x:                    | :x:                 |
+| Automatically find `package.json`  | :white_check_mark: | :x:                    | :x:                 |
+| HTTP proxy support                 | :white_check_mark: | :x:                    | :x:                 |
+| Force check for updates            | :white_check_mark: | :x:                    | :x:                 |
+| Automatic registry URL discovery   | :white_check_mark: | :white_check_mark:     | :white_check_mark:  |
+| Custom registry URL                | :white_check_mark: | :x:                    | :x:                 |
+| Registry auth token support        | :white_check_mark: | :white_check_mark:     | :white_check_mark:  |
+| Continuous integration check skip  | :white_check_mark: | :white_check_mark:     | :x:                 |
+| `NODE_ENV=test` check skip         | :white_check_mark: | :white_check_mark:     | :x:                 |
+| `NO_UPDATE_NOTIFIER=1` check skip  | :white_check_mark: | :white_check_mark:     | :x:                 |
+| Graceful offline support           | :white_check_mark: | :white_check_mark:     | :x:                 |
+| Type of semver update label        | :x:                | :white_check_mark:     | :x:                 |
+| Renders update available message   | :x:                | :white_check_mark:     | :x:                 |
+| Persisted opt-out setting          | :x:                | :white_check_mark:     | :x:                 |
+| License                            | Apache 2           | BSD 2-clause           | MIT                 |
+
 ## Legal
 
 This project is open source under the [Apache Public License v2][1] and is developed by
@@ -113,6 +141,8 @@ This project is open source under the [Apache Public License v2][1] and is devel
 in this distribution for more information.
 
 [1]: https://github.com/appcelerator/check-kit/blob/master/LICENSE
+[2]: https://www.npmjs.com/package/update-notifier
+[3]: https://www.npmjs.com/package/update-check
 [npm-image]: https://img.shields.io/npm/v/check-kit.svg
 [npm-url]: https://npmjs.org/package/check-kit
 [downloads-image]: https://img.shields.io/npm/dm/check-kit.svg
