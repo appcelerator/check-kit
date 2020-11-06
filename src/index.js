@@ -3,15 +3,12 @@ if (!Error.prepareStackTrace) {
 	require('source-map-support/register');
 }
 
-import fs from 'fs';
+import fs from 'fs-extra';
 import path from 'path';
 import semver from 'semver';
 import snooplogg from 'snooplogg';
 import * as request from '@axway/amplify-request';
-import { promisify } from 'util';
-
-const exists = file => promisify(fs.access)(file).then(() => true).catch(() => false);
-const readFile = promisify(fs.readFile);
+import { tmpdir } from 'os';
 
 const { error, log, warn } = snooplogg('check-kit');
 const { highlight } = snooplogg.styles;
@@ -20,65 +17,99 @@ const { highlight } = snooplogg.styles;
  * Checks if there's an new version of a package is available.
  *
  * @param {Object} [opts] - Various options.
- * @access public
+ * @param {String} [opts.caFile] - A path to a PEM-formatted certificate authority bundle.
+ * @param {String} [opts.certFile] - A path to a client cert file used for authentication.
+ * @param {Number} [opts.checkInterval=3600000] - The amount of time in milliseconds before
+ * checking for an update. Defaults to 1 hour.
+ * @param {String} [opts.cwd] - The current working directory used to locate the `package.json` if
+ * `pkg` is not specified.
+ * @param {String} [opts.distTag='latest'] - The tag to check for the latest version.
+ * @param {Boolean} [opts.force=false] - Forces an update check.
+ * @param {String} [opts.keyFile] - A path to a private key file used for authentication.
+ * @param {String} [opts.metaDir] - The directory to store package update information.
+ * @param {Object|String} [opts.pkg] - The parsed `package.json`, path to the package.json file, or
+ * falsey and it will scan parent directories looking for a package.json.
+ * @param {String} [opts.proxy] - A proxy server URL. Can be `http` or `https`.
+ * @param {String} [opts.registryUrl] - The npm registry URL. By default, it will autodetect the
+ * URL based on the package name/scope.
+ * @param {Boolean} [opts.strictSSL=true] - When falsey, disables TLS/SSL certificate validation
+ * for both `https` requests and `https` proxy servers.
+ * @param {Number} [opts.timeout=1000] - The number of milliseconds to wait to query npm before
+ * timing out.
+ * @returns {Promise} Resolves an object containing the update information.
  */
 export async function check(opts = {}) {
+	// bail immediately if update notifications have been explicitly disabled or we're running
+	// within a test
+	if (process.env.NO_UPDATE_NOTIFIER || process.env.NODE_ENV === 'test') {
+		return {};
+	}
+
 	if (!opts || typeof opts !== 'object') {
 		throw new TypeError('Expected options to be an object');
 	}
 
-	let { cwd, distTag = 'latest', pkg } = opts;
-
-	if (cwd && typeof cwd !== 'string') {
-		throw new TypeError('Expected cwd to be a string');
-	}
+	let {
+		checkInterval = 3600000,
+		distTag = 'latest',
+		force,
+		metaDir
+	} = opts;
 
 	if (!distTag || typeof distTag !== 'string') {
 		throw new TypeError('Expected distTag to be a non-empty string');
 	}
 
-	if (!pkg) {
-		// scan directories to find the package.json
-		pkg = await findPackage(cwd);
+	// determine the meta directory
+	if (!metaDir) {
+		metaDir = path.join(tmpdir(), 'check-kit');
+	} else if (typeof metaDir !== 'string') {
+		throw new TypeError('Expected metaDir to be a string');
 	}
 
-	if (typeof pkg === 'string') {
-		// try to read the package.json
-		pkg = await loadPackage(pkg);
-	}
-
-	// validate parsed package.json object
-	if (!pkg || typeof pkg !== 'object') {
-		throw new TypeError('Expected pkg to be a parsed package.json object');
-	}
-
-	const { name, version } = pkg;
-
+	// load the package.json
+	const { name, version } = await loadPackageJson(opts);
 	if (!name || typeof name !== 'string') {
 		throw new Error('Expected name in package.json to be a non-empty string');
 	}
-
 	if (!version || typeof version !== 'string') {
 		throw new Error('Expected version in package.json to be a non-empty string');
 	}
 
-	// get the latest version
-	const latest = await getLatestVersion(name, distTag, opts);
-	const update = latest ? semver.gt(latest, version) : false;
-
-	if (update) {
-		log(`${highlight(`${name}@${version}`)} has newer version ${highlight(latest)} available`);
-	} else {
-		log(`${highlight(`${name}@${version}`)} is already the latest version`);
-	}
-
-	return {
+	const now = Date.now();
+	const metaFile = path.resolve(metaDir, `${name.replace(/[/\\]/g, '-')}-${distTag}.json`);
+	const meta = Object.assign({
+		latest: version,
+		lastCheck: null,
+		updateAvailable: false
+	}, await loadMetaFile(metaFile), {
 		current: version,
 		distTag,
-		latest,
-		name,
-		update
-	};
+		name
+	});
+
+	// get the latest version from npm if:
+	//  - forcing update
+	//  - or there is no meta data
+	//  - or there's no last check timestamp
+	//  - or the last check is > check interval
+	if (force || !meta.lastCheck || (meta.lastCheck + checkInterval > now)) {
+		const latest = await getLatestVersion(name, distTag, opts);
+		meta.latest = latest || version;
+		meta.lastCheck = now;
+		meta.updateAvailable = latest ? semver.gt(latest, version) : false;
+		await fs.outputJson(metaFile, meta, { spaces: 2 });
+	}
+
+	if (meta.updateAvailable) {
+		log(`${highlight(`${name}@${version}`)} has newer version ${highlight(meta.latest)} available`);
+	} else if (meta.latest) {
+		log(`${highlight(`${name}@${version}`)} is already the latest version (${meta.latest})`);
+	} else {
+		log(`${highlight(`${name}@${version}`)} not found`);
+	}
+
+	return meta;
 }
 
 export default check;
@@ -86,16 +117,20 @@ export default check;
 /**
  * Scans the current directory up to the root to find the `package.json`.
  *
- * @param {String} [cwd] - The current working directory.
+ * @param {String} [cwd='.'] - The current working directory.
  * @returns {Promise} Resolves the path to the `package.json`.
  */
-async function findPackage(cwd) {
+export async function findPackageJson(cwd) {
+	if (cwd && typeof cwd !== 'string') {
+		throw new TypeError('Expected cwd to be a string');
+	}
+
 	let dir = path.resolve(cwd || '');
 	const { root } = path.parse(dir);
 
 	while (true) {
 		const file = path.join(dir, 'package.json');
-		if (await exists(file)) {
+		if (await fs.exists(file)) {
 			log(`Found ${highlight(file)}`);
 			return file;
 		}
@@ -107,30 +142,73 @@ async function findPackage(cwd) {
 }
 
 /**
- * Attempts to read and parse the `package.json` file.
+ * Loads the specified meta file and sanity checks it.
  *
- * @param {String} file - The path to the `package.json`.
- * @returns {Promise} Resolves the parsed `package.json` object.
+ * @param {String} metaFile - The path of the file to load.
+ * @returns {Object}
  */
-async function loadPackage(file) {
-	let contents;
+async function loadMetaFile(metaFile) {
 	try {
-		contents = await readFile(file, 'utf8');
-	} catch (err) {
-		if (err.code === 'ENOENT') {
-			err.message = `File not found: ${file}`;
-		} else {
-			err.message = `Failed to read file: ${file} (${err.message})`;
+		// read the meta file
+		log(`Loading meta file: ${highlight(metaFile)}`);
+		const meta = await fs.readJson(metaFile);
+		if (meta && typeof meta === 'object') {
+			return meta;
 		}
-		throw err;
+	} catch (e) {
+		// meta file does not exist or is malformed
 	}
 
-	try {
-		return JSON.parse(contents);
-	} catch (err) {
-		err.message = `Failed to parse package.json: ${err.message}`;
-		throw err;
+	return null;
+}
+
+/**
+ * Attempts to read and parse the `package.json` file.
+ *
+ * @param {Object} [opts] - Various options.
+ * @param {String} [opts.cwd] - The current working directory.
+ * @param {String} [opts.pkg] - The path to the `package.json`.
+ * @returns {Promise} Resolves the parsed `package.json` object.
+ */
+export async function loadPackageJson(opts = {}) {
+	if (!opts || typeof opts !== 'object') {
+		throw new TypeError('Expected options to be an object');
 	}
+
+	let { pkg } = opts;
+
+	if (!pkg) {
+		// scan directories to find the package.json
+		pkg = await findPackageJson(opts.cwd);
+	}
+
+	if (typeof pkg === 'string') {
+		let contents;
+		try {
+			contents = await fs.readFile(pkg, 'utf8');
+		} catch (err) {
+			if (err.code === 'ENOENT') {
+				err.message = `File not found: ${pkg}`;
+			} else {
+				err.message = `Failed to read file: ${pkg} (${err.message})`;
+			}
+			throw err;
+		}
+
+		try {
+			pkg = JSON.parse(contents);
+		} catch (err) {
+			err.message = `Failed to parse package.json: ${err.message}`;
+			throw err;
+		}
+	}
+
+	// validate parsed package.json object
+	if (!pkg || typeof pkg !== 'object') {
+		throw new TypeError('Expected pkg to be a parsed package.json object');
+	}
+
+	return pkg;
 }
 
 /**
@@ -151,6 +229,7 @@ async function getLatestVersion(name, distTag, opts) {
 		},
 		responseType: 'json',
 		retry: 0,
+		timeout: Object.prototype.hasOwnProperty.call(opts, 'timeout') ? opts.timeout : 1000,
 		url: new URL(encodeURIComponent(name).replace(/^%40/, '@'), regUrl)
 	};
 	let info;

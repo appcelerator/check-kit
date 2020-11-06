@@ -13,13 +13,13 @@ It is designed for CLI's that want to be in control.
 
  * Checks if there is a new version available
  * Checks version for a specific dist tag
+ * Fetches latest version from npm every so often
+ * Persists the update metadata
  * Supports HTTP proxies
 
 **What `check-kit` does _not_ do:**
 
- * Determine if the check should happen
  * Display a message if a new version is available
- * Record when the last check occurred
 
 ## Installation
 
@@ -27,38 +27,20 @@ It is designed for CLI's that want to be in control.
 
 ## Example
 
+Basic usage:
+
 ```js
 import check from 'check-kit';
-import fs from 'fs';
 
 (async () => {
-    // It's the caller's responsibility to determine if the check should be performed
-    // AND when the last check was performed
-    let shouldCheck = !process.env.NO_UPDATE_NOTIFIER && process.env.NODE_ENV !== 'test';
-    if (shouldCheck) {
-        try {
-            const lastCheck = parseInt(fs.readFileSync('.lastcheck', 'utf8'));
-            if (!isNaN(lastCheck) && lastCheck + (24 * 60 * 60 * 1000) < Date.now()) {
-                shouldCheck = false;
-            }
-        } catch (e) {
-            // fall through
-        }
-    }
+    const { current, distTag, name, latest, updateAvailable } = await check();
 
-    if (shouldCheck) {
-        // perform the check
-        const { current, distTag, name, latest, update } = await check();
+    console.log(`Current version of package ${name} is ${current}`);
 
-        console.log(`Current version is ${current}`);
-
-        if (update) {
-            console.log(`There is a new version available! ${latest}`);
-        } else {
-            console.log(`Version ${current} is the latest`);
-        }
-
-        fs.writeFileSync('.lastcheck', Date.now());
+    if (updateAvailable) {
+        console.log(`There is a new version available! ${current} -> ${latest}`);
+    } else {
+        console.log(`Version ${current} is the latest`);
     }
 })();
 ```
@@ -71,35 +53,58 @@ const result = await check({
 });
 ```
 
+By default, `check-kit` will store update metadata in `/tmp/check-kit` directory. You can override
+the directory, but not the metadata filename, by passing in the metadata directory:
+
+```js
+const result = await check({
+    metaDir: `${os.homedir()}/myapp/update`
+});
+```
+
 ## API
 
 ### `async check(opts)`
 
 Checks if the specified package has a newer version available.
 
-All options are optional.
+`opts` and all options are optional.
 
-| Option             | Type                 | Default    | Description                                             |
-| ------------------ | -------------------- | ---------- | ------------------------------------------------------- |
-| `opts.caFile`      | `String`             |            | A path to a PEM-formatted certificate authority bundle. |
-| `opts.certFile`    | `String`             |            | A path to a client cert file used for authentication.   |
-| `opts.cwd`         | `String`             | `"."`      | The current working directory.                          |
-| `opts.distTag`     | `String`             | `"latest"` | The tag to check for the latest version.                |
-| `opts.keyFile`     | `String`             |            | A path to a private key file used for authentication.   |
-| `opts.pkg`         | `Object` \| `String` |            | The parsed `package.json`, path to the `package.json` file, or falsey and it will scan parent directories looking for a `package.json`. |
-| `opts.proxy`       | `String`             |            | A proxy server URL. Can be `http` or `https`.           |
-| `opts.registryUrl` | `String`             |            | The npm registry URL. By default, it will autodetect the URL based on the package name/scope. |
-| `opts.strictSSL`   | `Boolean`            | `true`     | When falsey, disables TLS/SSL certificate validation for both `https` requests and `https` proxy servers. |
+| Option               | Type                 | Default    | Description                                             |
+| -------------------- | -------------------- | ---------- | ------------------------------------------------------- |
+| `opts.caFile`        | `String`             |            | A path to a PEM-formatted certificate authority bundle. |
+| `opts.certFile`      | `String`             |            | A path to a client cert file used for authentication.   |
+| `opts.checkInterval` | `Number`             | `3600000`  | The amount of time in milliseconds before checking for an update. Defaults to 1 hour. |
+| `opts.cwd`           | `String`             | `"."`      | The current working directory used to locate the `package.json` if `opts.pkg` is not specified. |
+| `opts.distTag`       | `String`             | `"latest"` | The tag to check for the latest version.                |
+| `opts.force`         | `Boolean`            | `false`    | Forces an update check. |
+| `opts.keyFile`       | `String`             |            | A path to a private key file used for authentication.   |
+| `opts.metaDir `      | `String`             | `"/tmp/check-kit/"` | The directory to store package update information. The filename is derived by the package name and the dist tag. |
+| `opts.pkg`           | `Object` \| `String` |            | The parsed `package.json`, path to the `package.json` file, or falsey and it will scan parent directories looking for a `package.json`. |
+| `opts.proxy`         | `String`             |            | A proxy server URL. Can be `http` or `https`.           |
+| `opts.registryUrl`   | `String`             |            | The npm registry URL. By default, it will autodetect the URL based on the package name/scope. |
+| `opts.strictSSL`     | `Boolean`            | `true`     | When falsey, disables TLS/SSL certificate validation for both `https` requests and `https` proxy servers. |
+| `opts.timeout`       | `Number`             | `1000`     | The number of milliseconds to wait to query npm before timing out. |
 
 Returns a `Promise` that resolves the following:
 
-| Property  | Type               | Description                                    |
-| --------- | ------------------ | ---------------------------------------------- |
-| `current` | `String`           | The current version from the `package.json`.   |
-| `distTag` | `String`           | The dist tag used to check the version.        |
-| `name`    | `String`           | The package name.                              |
-| `latest`  | `String` \| `null` | The latest version returned from the registry or `null` if the package is not found. |
-| `update`  | `Boolean`          | Value is `true` if a new version is available. |
+| Property          | Type               | Description                                    |
+| ----------------- | ------------------ | ---------------------------------------------- |
+| `current`         | `String`           | The current version from the `package.json`.   |
+| `distTag`         | `String`           | The dist tag used to check the version.        |
+| `lastCheck`       | `Number`           | The timestamp the last check occurred.         |
+| `latest`          | `String` \| `null` | The latest version returned from the registry or `null` if the package is not found. |
+| `name`            | `String`           | The package name.                              |
+| `updateAvailable` | `Boolean`          | Value is `true` if a new version is available. |
+
+### Metadata file
+
+The metadata file contains information about the package and whether an update is available based
+on the last check.
+
+You can override the directory where the metadata file is stored, but you cannot override the
+metadata filename. The filename is derived from the package name and the distribution tag. For
+example, the package `@foo/bar` would resolve the filename `@foo-bar-latest.json`.
 
 ## Legal
 
