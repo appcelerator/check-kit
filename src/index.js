@@ -94,7 +94,7 @@ export async function check(opts = {}) {
 	//  - or there is no meta data
 	//  - or there's no last check timestamp
 	//  - or the last check is > check interval
-	if (force || !meta.lastCheck || (meta.lastCheck + checkInterval > now)) {
+	if (force || !meta.lastCheck || (now > meta.lastCheck + checkInterval)) {
 		try {
 			meta.latest = await getLatestVersion(name, distTag, opts);
 			meta.lastCheck = now;

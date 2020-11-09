@@ -1,6 +1,6 @@
 {
   "name": "check-kit",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Checks if a newer version is available for command line interfaces",
   "main": "./dist/index.js",
   "author": "Axway, Inc. <npmjs@appcelerator.com>",
