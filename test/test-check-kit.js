@@ -11,7 +11,7 @@ const { highlight } = snooplogg.styles;
 process.env.TEST_META_DIR = tmp.dirSync({ prefix: 'check-kit-test' }).name;
 
 describe('check-kit', function () {
-	after(async () => {
+	afterEach(async () => {
 		await fs.remove(process.env.TEST_META_DIR);
 	});
 
