@@ -1,3 +1,9 @@
+# v1.1.2 (Jan 25, 2021)
+
+ * fix: Always recalculate the update available flag and write the results to disk in order to
+   prevent a stale update available flag. ([CLI-106](https://jira.axway.com/browse/CLI-106))
+ * chore: Updated dependencies.
+
 # v1.1.1 (Jan 5, 2021)
 
  * chore: Updated dependencies.
