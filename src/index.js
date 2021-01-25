@@ -79,15 +79,19 @@ export async function check(opts = {}) {
 
 	const now = Date.now();
 	const metaFile = path.resolve(metaDir, `${name.replace(/[/\\]/g, '-')}-${distTag}.json`);
-	const meta = Object.assign({
-		latest: null,
-		lastCheck: null,
-		updateAvailable: false
-	}, await loadMetaFile(metaFile), {
-		current: version,
-		distTag,
-		name
-	});
+	const meta = Object.assign(
+		{
+			latest: null,
+			lastCheck: null,
+			updateAvailable: false
+		},
+		await loadMetaFile(metaFile),
+		{
+			current: version,
+			distTag,
+			name
+		}
+	);
 
 	// get the latest version from npm if:
 	//  - forcing update
@@ -98,8 +102,6 @@ export async function check(opts = {}) {
 		try {
 			meta.latest = await getLatestVersion(name, distTag, opts);
 			meta.lastCheck = now;
-			meta.updateAvailable = meta.latest ? semver.gt(meta.latest, version) : false;
-			await fs.outputJson(metaFile, meta, { spaces: 2 });
 		} catch (err) {
 			// check if we're offline
 			/* istanbul ignore if */
@@ -110,6 +112,9 @@ export async function check(opts = {}) {
 			}
 		}
 	}
+
+	meta.updateAvailable = meta.latest ? semver.gt(meta.latest, version) : false;
+	await fs.outputJson(metaFile, meta, { spaces: 2 });
 
 	if (meta.updateAvailable) {
 		log(`${highlight(`${name}@${version}`)} has newer version ${highlight(meta.latest)} available`);

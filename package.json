@@ -1,6 +1,6 @@
 {
   "name": "check-kit",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Checks if a newer version is available for command line interfaces",
   "main": "./dist/index.js",
   "author": "Axway, Inc. <npmjs@appcelerator.com>",
@@ -31,7 +31,7 @@
   "dependencies": {
     "@axway/amplify-request": "^2.1.1",
     "ci-info": "^2.0.0",
-    "fs-extra": "^9.0.1",
+    "fs-extra": "^9.1.0",
     "registry-auth-token": "4.2.1",
     "semver": "^7.3.4",
     "snooplogg": "^3.0.2",
@@ -39,7 +39,7 @@
     "tmp": "^0.2.1"
   },
   "devDependencies": {
-    "appcd-gulp": "^3.1.1"
+    "appcd-gulp": "^3.1.2"
   },
   "homepage": "https://github.com/appcelerator/check-kit",
   "bugs": "https://github.com/appcelerator/check-kit/issues",
