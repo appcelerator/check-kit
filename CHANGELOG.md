@@ -1,3 +1,9 @@
+# v1.2.0 (Jun 7, 2021)
+
+ * feat: Added `applyOwner` flag with default of `true` which sets the owner of the metadata file
+   to the owner of closest existing parent directory to protect against commands run as sudo.
+ * chore: Updated dependencies.
+
 # v1.1.2 (Jan 25, 2021)
 
  * fix: Always recalculate the update available flag and write the results to disk in order to

@@ -10,6 +10,7 @@ import snooplogg from 'snooplogg';
 import * as request from '@axway/amplify-request';
 import { isCI } from 'ci-info';
 import { tmpdir } from 'tmp';
+import { writeFileSync } from './fsutil';
 
 const { error, log, warn } = snooplogg('check-kit');
 const { highlight } = snooplogg.styles;
@@ -18,6 +19,8 @@ const { highlight } = snooplogg.styles;
  * Checks if there's an new version of a package is available.
  *
  * @param {Object} [opts] - Various options.
+ * @param {Boolean} [opts.applyOwner=true] - When `true`, determines the owner of the closest
+ * existing parent directory and apply the owner to the file and any newly created directories.
  * @param {String} [opts.caFile] - A path to a PEM-formatted certificate authority bundle.
  * @param {String} [opts.certFile] - A path to a client cert file used for authentication.
  * @param {Number} [opts.checkInterval=3600000] - The amount of time in milliseconds before
@@ -114,7 +117,7 @@ export async function check(opts = {}) {
 	}
 
 	meta.updateAvailable = meta.latest ? semver.gt(meta.latest, version) : false;
-	await fs.outputJson(metaFile, meta, { spaces: 2 });
+	await writeFileSync(metaFile, JSON.stringify(meta, null, 2), { applyOwner: opts.applyOwner });
 
 	if (meta.updateAvailable) {
 		log(`${highlight(`${name}@${version}`)} has newer version ${highlight(meta.latest)} available`);
