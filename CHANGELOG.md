@@ -1,4 +1,4 @@
-# v1.2.1 (Jun 7, 2021)
+# v1.2.1 (Jun 8, 2021)
 
  * fix: Writing a file with a mode was applying the mode to the file and newly created directories.
  * fix: Default new directories to mode 777.
