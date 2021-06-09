@@ -72,6 +72,7 @@ Checks if the specified package has a newer version available.
 
 | Option               | Type                 | Default    | Description                                             |
 | -------------------- | -------------------- | ---------- | ------------------------------------------------------- |
+| `opts.applyOwner`    | `Boolean`            | `true`     | When `true`, determines the owner of the closest existing parent directory and apply the owner to the file and any newly created directories. |
 | `opts.caFile`        | `String`             |            | A path to a PEM-formatted certificate authority bundle. |
 | `opts.certFile`      | `String`             |            | A path to a client cert file used for authentication.   |
 | `opts.checkInterval` | `Number`             | `3600000`  | The amount of time in milliseconds before checking for an update. Defaults to 1 hour. |
@@ -110,7 +111,7 @@ example, the package `@foo/bar` would resolve the filename `@foo-bar-latest.json
 
 |                                    | `check-kit`        | [`update-notifier`][2] | [`update-check`][3] |
 | ---------------------------------- | :----------------: | :--------------------: | :-----------------: |
-| Version                            | 1.x                | 5.0.1                  | 1.5.4               |
+| Version                            | 1.7.1              | 5.1.0                  | 1.5.4               |
 | Default check interval             | 1 hour             | 24 hours               | 1 hour              |
 | Update check method                | Async/await        | Subprocess             | Async/await         |
 | Notify of updates immediately      | :white_check_mark: | :x:                    | :white_check_mark:  |
@@ -129,6 +130,7 @@ example, the package `@foo/bar` would resolve the filename `@foo-bar-latest.json
 | `NODE_ENV=test` check skip         | :white_check_mark: | :white_check_mark:     | :x:                 |
 | `NO_UPDATE_NOTIFIER=1` check skip  | :white_check_mark: | :white_check_mark:     | :x:                 |
 | Graceful offline support           | :white_check_mark: | :white_check_mark:     | :x:                 |
+| Apply correct owner when sudo      | :white_check_mark: | :x:                    | :x:                 |
 | Type of semver update label        | :x:                | :white_check_mark:     | :x:                 |
 | Renders update available message   | :x:                | :white_check_mark:     | :x:                 |
 | Persisted opt-out setting          | :x:                | :white_check_mark:     | :x:                 |

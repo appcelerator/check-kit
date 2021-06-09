@@ -70,7 +70,7 @@ function execute(dest, opts, fn) {
  */
 export function mkdirpSync(dest, opts = {}) {
 	execute(dest, opts, opts => {
-		fs.mkdirSync(dest, { ...opts, recursive: true });
+		fs.mkdirSync(dest, { mode: 0o777, ...opts, recursive: true });
 	});
 }
 
@@ -89,7 +89,7 @@ export function mkdirpSync(dest, opts = {}) {
 export function moveSync(src, dest, opts = {}) {
 	execute(dest, opts, opts => {
 		mkdirpSync(path.dirname(dest), opts);
-		fs.renameSync(src, dest, opts);
+		fs.renameSync(src, dest);
 	});
 }
 
@@ -107,7 +107,7 @@ export function moveSync(src, dest, opts = {}) {
  */
 export function writeFileSync(dest, contents, opts = {}) {
 	execute(dest, opts, opts => {
-		mkdirpSync(path.dirname(dest), opts);
+		mkdirpSync(path.dirname(dest), { ...opts, mode: undefined });
 		fs.writeFileSync(dest, contents, opts);
 	});
 }

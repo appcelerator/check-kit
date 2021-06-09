@@ -1,3 +1,8 @@
+# v1.2.1 (Jun 7, 2021)
+
+ * fix: Writing a file with a mode was applying the mode to the file and newly created directories.
+ * fix: Default new directories to mode 777.
+
 # v1.2.0 (Jun 7, 2021)
 
  * feat: Added `applyOwner` flag with default of `true` which sets the owner of the metadata file
