@@ -242,6 +242,7 @@ async function getLatestVersion(name, distTag, opts) {
 	const regUrl = opts.registryUrl || require('registry-auth-token/registry-url')(p !== -1 ? name.substring(0, p) : '');
 	const got = request.init(opts);
 	const reqOpts = {
+		followRedirect: true,
 		headers: {
 			accept: 'application/vnd.npm.install-v1+json; q=1.0, application/json; q=0.8, */*'
 		},
@@ -256,7 +257,7 @@ async function getLatestVersion(name, distTag, opts) {
 		try {
 			info = (await got(reqOpts)).body;
 		} catch (err) {
-			if (err.code === 'ENOTFOUND' || err.code === 'ECONNREFUSED') {
+			if (err.code === 'ECONNREFUSED') {
 				err.message = `Failed to connect to npm registry: ${err.message}`;
 				throw err;
 			}
@@ -266,6 +267,12 @@ async function getLatestVersion(name, distTag, opts) {
 				throw err;
 			}
 
+			if (err.response.statusCode === 404) {
+				const error = new Error(`Response code ${err.response.statusCode} (${err.response.statusMessage})`);
+				error.code = 'ENOTFOUND';
+				throw error;
+			}
+
 			if (reqOpts.headers.authorization) {
 				// we already tried, bail out
 				return null;
@@ -273,6 +280,11 @@ async function getLatestVersion(name, distTag, opts) {
 
 			// package does not exist or we can't access it
 			const authInfo = require('registry-auth-token')(regUrl, { recursive: true });
+			if (!authInfo) {
+				// no auth info, bail out
+				return null;
+			}
+
 			reqOpts.headers.authorization = `${authInfo.type} ${authInfo.token}`;
 			warn('Request failed, retrying with authorization header...');
 		}
