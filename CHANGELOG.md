@@ -1,3 +1,9 @@
+# v2.0.0 (Feb 15, 2022)
+
+ * BREAKING CHANGE: Require Node.js 12.13.0 LTS or newer.
+ * fix: Fixed handling of 404 requests when getting latest version.
+ * chore: Updated dependencies.
+
 # v1.2.1 (Jun 8, 2021)
 
  * fix: Writing a file with a mode was applying the mode to the file and newly created directories.

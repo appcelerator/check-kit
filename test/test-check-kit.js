@@ -209,7 +209,9 @@ describe('check-kit', function () {
 				this.server = http.createServer((req, res) => {
 					switch (req.url) {
 						case '/restricted-package':
-							res.writeHead(401);
+							res.writeHead(401, {
+								'Content-Type': 'text/plain'
+							});
 							res.end('Not authorized');
 							break;
 
@@ -229,12 +231,16 @@ describe('check-kit', function () {
 							break;
 
 						case '/bar':
-							res.writeHead(500);
+							res.writeHead(500, {
+								'Content-Type': 'text/plain'
+							});
 							res.end('Server error');
 							break;
 
 						default:
-							res.writeHead(404);
+							res.writeHead(404, {
+								'Content-Type': 'text/plain'
+							});
 							res.end('Not found');
 					}
 				}).on('connection', conn => {
