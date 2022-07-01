@@ -1,9 +1,16 @@
-import check, { loadPackageJson } from '../dist/index';
+import chai, { expect } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
+import check, { loadPackageJson } from '../src/index.js';
 import fs from 'fs-extra';
 import http from 'http';
 import path from 'path';
 import snooplogg from 'snooplogg';
 import tmp from 'tmp';
+import { fileURLToPath } from 'url';
+
+chai.use(chaiAsPromised);
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const { log } = snooplogg('test:check-kit');
 const { highlight } = snooplogg.styles;
@@ -126,7 +133,9 @@ describe('check-kit', function () {
 			expect(result.updateAvailable).to.equal(true);
 		});
 
-		it('should check a valid package.json with scoped name', async () => {
+		it('should check a valid package.json with scoped name', async function () {
+			this.timeout(5000);
+
 			const result = await check({
 				pkg: path.resolve(__dirname, 'fixtures/good-scoped/package.json')
 			});
