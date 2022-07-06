@@ -18,6 +18,10 @@ const { highlight } = snooplogg.styles;
 process.env.TEST_META_DIR = tmp.dirSync({ prefix: 'check-kit-test' }).name;
 
 describe('check-kit', function () {
+	beforeEach(() => {
+		process.env.FORCE_UPDATE_NOTIFIER = 1;
+	});
+
 	afterEach(async () => {
 		await fs.remove(process.env.TEST_META_DIR);
 	});
@@ -76,6 +80,7 @@ describe('check-kit', function () {
 	describe('Environment check skip', () => {
 		it('should skip check if NO_UPDATE_NOTIFIER is set', async () => {
 			try {
+				delete process.env.FORCE_UPDATE_NOTIFIER;
 				process.env.NO_UPDATE_NOTIFIER = 1;
 				expect(await check()).to.deep.equal({});
 			} finally {
@@ -85,6 +90,7 @@ describe('check-kit', function () {
 
 		it('should skip check if NODE_ENV is set to test', async () => {
 			try {
+				delete process.env.FORCE_UPDATE_NOTIFIER;
 				process.env.NODE_ENV = 'test';
 				expect(await check()).to.deep.equal({});
 			} finally {

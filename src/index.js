@@ -51,7 +51,7 @@ export async function check(opts = {}) {
 
 	// bail immediately if update notifications have been explicitly disabled or we're running
 	// within a test
-	if (!force && (process.env.NO_UPDATE_NOTIFIER || process.env.NODE_ENV === 'test' || isCI)) {
+	if (!force && !process.env.FORCE_UPDATE_NOTIFIER && (process.env.NO_UPDATE_NOTIFIER || process.env.NODE_ENV === 'test' || isCI)) {
 		return {};
 	}
 
@@ -243,7 +243,9 @@ async function getLatestVersion(name, distTag, opts) {
 		},
 		responseType: 'json',
 		retry: 0,
-		timeout: Object.prototype.hasOwnProperty.call(opts, 'timeout') ? opts.timeout : 1000,
+		timeout: {
+			request: Object.prototype.hasOwnProperty.call(opts, 'timeout') ? opts.timeout : 1000
+		},
 		url: new URL(encodeURIComponent(name).replace(/^%40/, '@'), regUrl)
 	};
 	let info;
