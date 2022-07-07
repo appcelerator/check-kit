@@ -1,3 +1,7 @@
+# v3.0.1 (July 7, 2022)
+
+ * fix: Added missing `src` directory. Doh!
+
 # v3.0.0 (July 7, 2022)
 
  * BREAKING CHANGE: Require Node.js 14.15.0 LTS or newer.
