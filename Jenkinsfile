@@ -2,5 +2,5 @@
 library 'pipeline-library'
 
 runNPMPackage {
-  nodeVersions = [ '12.18.0', '14.4.0' ]
+  nodeVersions = [ '14.19.3', '16.15.1', '18.4.0' ]
 }

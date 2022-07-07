@@ -2,7 +2,8 @@
   "name": "check-kit",
   "version": "2.0.0",
   "description": "Checks if a newer version is available for command line interfaces",
-  "main": "./dist/index.js",
+  "type": "module",
+  "exports": "./src/index.js",
   "author": "Axway, Inc. <npmjs@appcelerator.com>",
   "maintainers": [
     "Chris Barber <cbarber@axway.com>"
@@ -21,26 +22,31 @@
     "latest"
   ],
   "scripts": {
-    "build": "gulp build",
-    "coverage": "gulp coverage",
-    "docs": "gulp docs",
-    "lint": "gulp lint",
-    "prepare": "gulp build",
-    "test": "gulp test"
+    "coverage": "c8 npm run test",
+    "lint": "eslint --ignore-pattern test/fixtures src test",
+    "prepublishOnly": "npm run lint",
+    "test": "npm run lint && mocha test/**/test-*.js --reporter spec"
   },
   "dependencies": {
-    "@axway/amplify-request": "^3.0.6",
-    "babel-plugin-source-map-support": "^2.1.3",
-    "ci-info": "^3.3.0",
-    "fs-extra": "^9.1.0",
-    "registry-auth-token": "4.2.1",
-    "semver": "^7.3.5",
-    "snooplogg": "^3.0.2",
+    "@axway/amplify-request": "^3.0.10",
+    "ci-info": "^3.3.2",
+    "fs-extra": "^10.1.0",
+    "registry-auth-token": "5.0.1",
+    "semver": "^7.3.7",
+    "snooplogg": "^5.0.0",
     "source-map-support": "^0.5.21",
     "tmp": "^0.2.1"
   },
   "devDependencies": {
-    "@axway/gulp-tasks": "^4.1.1"
+    "c8": "^7.11.3",
+    "chai": "^4.3.6",
+    "chai-as-promised": "^7.1.1",
+    "eslint": "^8.19.0",
+    "eslint-plugin-chai-expect": "^3.0.0",
+    "eslint-plugin-mocha": "^10.0.5",
+    "eslint-plugin-promise": "^6.0.0",
+    "eslint-plugin-security": "^1.5.0",
+    "mocha": "^10.0.0"
   },
   "homepage": "https://github.com/appcelerator/check-kit",
   "bugs": "https://github.com/appcelerator/check-kit/issues",
@@ -49,6 +55,6 @@
     "url": "git://github.com/appcelerator/check-kit.git"
   },
   "engines": {
-    "node": ">=12.13.0"
+    "node": ">=14.15.0"
   }
 }

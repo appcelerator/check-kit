@@ -1,3 +1,9 @@
+# v3.0.0 (July 5, 2022)
+
+ * BREAKING CHANGE: Require Node.js 14.15.0 LTS or newer.
+ * BREAKING CHANGE: Changed package to a ES module.
+ * chore: Updated dependencies.
+
 # v2.0.0 (Feb 15, 2022)
 
  * BREAKING CHANGE: Require Node.js 12.13.0 LTS or newer.

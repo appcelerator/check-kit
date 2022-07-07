@@ -1,16 +1,11 @@
-/* istanbul ignore if */
-if (!Error.prepareStackTrace) {
-	require('source-map-support/register');
-}
-
 import fs from 'fs-extra';
 import path from 'path';
 import semver from 'semver';
 import snooplogg from 'snooplogg';
 import * as request from '@axway/amplify-request';
 import { isCI } from 'ci-info';
-import { tmpdir } from 'tmp';
-import { writeFileSync } from './fsutil';
+import tmp from 'tmp';
+import { writeFileSync } from './fsutil.js';
 
 const { error, log, warn } = snooplogg('check-kit');
 const { highlight } = snooplogg.styles;
@@ -56,7 +51,7 @@ export async function check(opts = {}) {
 
 	// bail immediately if update notifications have been explicitly disabled or we're running
 	// within a test
-	if (!force && (process.env.NO_UPDATE_NOTIFIER || process.env.NODE_ENV === 'test' || isCI)) {
+	if (!force && !process.env.FORCE_UPDATE_NOTIFIER && (process.env.NO_UPDATE_NOTIFIER || process.env.NODE_ENV === 'test' || isCI)) {
 		return {};
 	}
 
@@ -66,7 +61,7 @@ export async function check(opts = {}) {
 
 	// determine the meta directory
 	if (!metaDir) {
-		metaDir = process.env.TEST_META_DIR || path.join(tmpdir, 'check-kit');
+		metaDir = process.env.TEST_META_DIR || path.join(tmp.tmpdir, 'check-kit');
 	} else if (typeof metaDir !== 'string') {
 		throw new TypeError('Expected metaDir to be a string');
 	}
@@ -239,7 +234,7 @@ export async function loadPackageJson(opts = {}) {
  */
 async function getLatestVersion(name, distTag, opts) {
 	const p = name.indexOf('/');
-	const regUrl = opts.registryUrl || require('registry-auth-token/registry-url')(p !== -1 ? name.substring(0, p) : '');
+	const regUrl = opts.registryUrl || (await import('registry-auth-token/registry-url.js')).default(p !== -1 ? name.substring(0, p) : '');
 	const got = request.init(opts);
 	const reqOpts = {
 		followRedirect: true,
@@ -248,7 +243,9 @@ async function getLatestVersion(name, distTag, opts) {
 		},
 		responseType: 'json',
 		retry: 0,
-		timeout: Object.prototype.hasOwnProperty.call(opts, 'timeout') ? opts.timeout : 1000,
+		timeout: {
+			request: Object.prototype.hasOwnProperty.call(opts, 'timeout') ? opts.timeout : 1000
+		},
 		url: new URL(encodeURIComponent(name).replace(/^%40/, '@'), regUrl)
 	};
 	let info;
@@ -279,7 +276,7 @@ async function getLatestVersion(name, distTag, opts) {
 			}
 
 			// package does not exist or we can't access it
-			const authInfo = require('registry-auth-token')(regUrl, { recursive: true });
+			const authInfo = (await import('registry-auth-token')).default(regUrl, { recursive: true });
 			if (!authInfo) {
 				// no auth info, bail out
 				return null;
