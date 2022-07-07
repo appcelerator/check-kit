@@ -243,9 +243,7 @@ async function getLatestVersion(name, distTag, opts) {
 		},
 		responseType: 'json',
 		retry: 0,
-		timeout: {
-			request: Object.prototype.hasOwnProperty.call(opts, 'timeout') ? opts.timeout : 1000
-		},
+		timeout: Object.prototype.hasOwnProperty.call(opts, 'timeout') ? opts.timeout : 1000,
 		url: new URL(encodeURIComponent(name).replace(/^%40/, '@'), regUrl)
 	};
 	let info;

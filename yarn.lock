@@ -148,9 +148,9 @@
     "@types/node" "*"
 
 "@types/node@*":
-  version "18.0.2"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-18.0.2.tgz#a594e580c396c22dd6b1470be81737c79ec0b1b1"
-  integrity sha512-b947SdS4GH+g2W33wf5FzUu1KLj5FcSIiNWbU1ZyMvt/X7w48ZsVcsQoirIgE/Oq03WT5Qbn/dkY0hePi4ZXcQ==
+  version "18.0.3"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-18.0.3.tgz#463fc47f13ec0688a33aec75d078a0541a447199"
+  integrity sha512-HzNRZtp4eepNitP+BD6k2L6DROIDG4Q0fm4x+dwfsr6LGmROENnok75VGw40628xf+iR24WeMFcHuuBDUAzzsQ==
 
 "@types/responselike@*", "@types/responselike@^1.0.0":
   version "1.0.0"
@@ -276,9 +276,9 @@ browser-stdout@1.3.1:
   integrity sha512-qhAVI1+Av2X7qelOfAIYwXONood6XlZE/fXaBSmW/T5SzLAmCgzi+eiWE7fUvbHaeNBQH13UftjpXxsfLkMpgw==
 
 bryt-lite@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/bryt-lite/-/bryt-lite-2.0.0.tgz#c938348b74caeff53be385a19fc6845dda2cca76"
-  integrity sha512-hRXN1pKApAQCNp0/fIQ7ftEkmHD71wwY8yqdfrFlpiXdIknV63bLce861j3GYzF8p1/3FWuxEsh8C/ZKP2fzeQ==
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/bryt-lite/-/bryt-lite-2.0.1.tgz#8bb35d3219d541622ba6c9c32d051e91a60d54c5"
+  integrity sha512-m6QJ1DUuLc+XTFQ26uLLFZdS5Dcjc4tWDK8M49YLHLW8EtSAwnbzGZVyBV4XjXmoMmWsCJ/d6NvpydhW/KQwNA==
 
 bryt@^1.0.2:
   version "1.0.2"
