@@ -7,33 +7,75 @@ jobs:
   Lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: '16.x'
+          node-version: "20.x"
       - name: Install dependencies
         run: yarn
       - name: Lint
         run: yarn run lint
 
-  Test:
+  MacOsTest:
     needs: Lint
     name: ${{ matrix.os }} ${{ matrix.nodeVersion }} Tests
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        nodeVersion: [ '14.19.3', '16.15.1', '18.4.0' ]
-        os: [ macos-latest, ubuntu-latest, windows-latest ]
+        nodeVersion: ["20.19.2", "22.16.0"]
+        os: [macos-latest]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.nodeVersion }}
+      - name: Install dependencies
+        run: yarn
+      - name: Run tests
+        run: yarn run test
+  WindowsTest:
+    needs: Lint
+    name: ${{ matrix.os }} ${{ matrix.nodeVersion }} Tests
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        nodeVersion: ["20.19.2", "22.16.0"]
+        os: [windows-latest]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.nodeVersion }}
+      - name: Install dependencies
+        run: yarn
+      - name: Run tests
+        run: yarn run test
+  UbuntuTest:
+    needs: Lint
+    name: ${{ matrix.os }} ${{ matrix.nodeVersion }} Tests
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        nodeVersion: ["20.19.2", "22.16.0"]
+        os: [ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.nodeVersion }}
+      - name: Install libsecret
+        run: sudo apt-get install -y libsecret-1-0
       - name: Install dependencies
         run: yarn
       - name: Run tests

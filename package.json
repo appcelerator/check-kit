@@ -1,6 +1,6 @@
 {
   "name": "check-kit",
-  "version": "3.0.1",
+  "version": "4.0.0",
   "description": "Checks if a newer version is available for command line interfaces",
   "type": "module",
   "exports": "./src/index.js",
@@ -28,7 +28,7 @@
     "test": "npm run lint && mocha test/**/test-*.js --reporter spec"
   },
   "dependencies": {
-    "@axway/amplify-request": "^3.0.10",
+    "@axway/amplify-request": "^4.0.2",
     "ci-info": "^3.3.2",
     "fs-extra": "^10.1.0",
     "registry-auth-token": "5.0.1",
@@ -55,6 +55,6 @@
     "url": "git://github.com/appcelerator/check-kit.git"
   },
   "engines": {
-    "node": ">=14.15.0"
+    "node": ">=20.18.2"
   }
 }

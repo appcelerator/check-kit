@@ -103,7 +103,7 @@ describe('check-kit', function () {
 		it('should error if package.json is malformed', async () => {
 			await expect(check({
 				pkg: path.resolve(__dirname, 'fixtures/malformed/package.json')
-			})).to.eventually.be.rejectedWith(Error, 'Failed to parse package.json: Unexpected token { in JSON at position 1');
+			})).to.eventually.be.rejectedWith(Error, 'Failed to parse package.json: Expected property name or \'}\' in JSON at position 1');
 		});
 
 		it('should error if pkg is not an object', async () => {
@@ -342,7 +342,7 @@ describe('check-kit', function () {
 					version: '1.2.3'
 				},
 				registryUrl: 'http://127.0.0.1:1337'
-			})).to.eventually.be.rejectedWith(Error, /^Unexpected token { in JSON at position/);
+			})).to.eventually.be.rejectedWith(Error, /^Expected property name or '}' in JSON at position 1/);
 		});
 
 		it('should error if registry returned non-object JSON response', async () => {
