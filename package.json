@@ -46,7 +46,7 @@
     "eslint-plugin-mocha": "^10.0.5",
     "eslint-plugin-promise": "^6.0.0",
     "eslint-plugin-security": "^1.5.0",
-    "mocha": "^10.0.0"
+    "mocha": "^12.0.0"
   },
   "homepage": "https://github.com/appcelerator/check-kit",
   "bugs": "https://github.com/appcelerator/check-kit/issues",
