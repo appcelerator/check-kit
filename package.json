@@ -55,6 +55,6 @@
     "url": "git://github.com/appcelerator/check-kit.git"
   },
   "engines": {
-    "node": ">=20.18.2"
+    "node": ">=22.16.0"
   }
 }

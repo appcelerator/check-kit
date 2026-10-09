@@ -1,3 +1,7 @@
+# v5.0.0
+
+- BREAKING CHANGE: Require Node.js 22.16.0 LTS or newer.
+
 # v4.0.0 (June 18, 2025)
 
 - BREAKING CHANGE: Require Node.js 20.18.2 LTS or newer.
