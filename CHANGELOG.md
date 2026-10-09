@@ -1,6 +1,7 @@
-# v5.0.0
+# v5.0.0 (Oct 9, 2026)
 
 - BREAKING CHANGE: Require Node.js 22.16.0 LTS or newer.
+- chore: Updated dependencies.
 
 # v4.0.0 (June 18, 2025)
 
