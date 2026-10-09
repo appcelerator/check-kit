@@ -12,7 +12,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
-          node-version: "20.x"
+          node-version: "24.x"
       - name: Install dependencies
         run: yarn
       - name: Lint
@@ -25,7 +25,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        nodeVersion: ["20.19.2", "22.16.0"]
+        nodeVersion: ["22.x", "24.x", "26.x"]
         os: [macos-latest]
     steps:
       - uses: actions/checkout@v4
@@ -45,13 +45,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        nodeVersion: ["20.19.2", "22.16.0"]
+        nodeVersion: ["22.x", "24.x", "26.x"]
         os: [windows-latest]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.nodeVersion }}
       - name: Install dependencies
@@ -65,7 +65,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        nodeVersion: ["20.19.2", "22.16.0"]
+        nodeVersion: ["22.x", "24.x", "26.x"]
         os: [ubuntu-latest]
     steps:
       - uses: actions/checkout@v4
