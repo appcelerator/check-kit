@@ -1,3 +1,10 @@
+# v5.0.0 (Oct 9, 2026)
+
+- BREAKING CHANGE: Require Node.js 22.16.0 LTS or newer.
+- chore: Updated dependencies, including `ci-info` 4, `fs-extra` 11, `chai` 6 and `c8` 12.
+- chore: Upgraded ESLint to v10 and migrated from `.eslintrc` to flat config (`eslint.config.js`).
+- chore: Expanded CI test matrix to Node.js 22.16.0, 24 and 26.
+
 # v4.0.0 (June 18, 2025)
 
 - BREAKING CHANGE: Require Node.js 20.18.2 LTS or newer.
